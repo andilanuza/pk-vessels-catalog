@@ -5,6 +5,90 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PK Props Catalog — Vessels</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  /* ── PASSWORD GATE ── */
+  #pw-gate {
+    position: fixed;
+    inset: 0;
+    background: #1A1A18;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #pw-gate.hidden { display: none; }
+  .pw-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 320px;
+  }
+  .pw-logo {
+    font-family: 'Barlow Semi Condensed', sans-serif;
+    font-size: 26px;
+    color: #fff;
+    letter-spacing: 0;
+    margin-bottom: 4px;
+  }
+  .pw-label {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #666;
+    font-family: 'DM Mono', monospace;
+  }
+  .pw-input-wrap {
+    width: 100%;
+    position: relative;
+  }
+  #pw-input {
+    width: 100%;
+    box-sizing: border-box;
+    background: #2A2A28;
+    border: 1.5px solid #3A3A38;
+    border-radius: 6px;
+    padding: 11px 44px 11px 14px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: #fff;
+    outline: none;
+    transition: border-color 0.15s;
+    letter-spacing: 0.08em;
+  }
+  #pw-input::placeholder { color: #555; }
+  #pw-input:focus { border-color: #666; }
+  #pw-input.error { border-color: #D94040; animation: pw-shake 0.3s ease; }
+  #pw-submit {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    transition: color 0.15s;
+  }
+  #pw-submit:hover { color: #fff; }
+  .pw-error-msg {
+    font-size: 10px;
+    color: #D94040;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    min-height: 14px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+  }
+  @keyframes pw-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1217,6 +1301,22 @@
   </style>
 </head>
 <body>
+
+<div id="pw-gate">
+  <div class="pw-box">
+    <div class="pw-logo">PhotoKitchen</div>
+    <div class="pw-label">Props Catalog — Team Access</div>
+    <div class="pw-input-wrap">
+      <input id="pw-input" type="password" placeholder="Enter password" autocomplete="off" />
+      <button id="pw-submit" type="button" aria-label="Unlock">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+    </div>
+    <div class="pw-error-msg" id="pw-error"></div>
+  </div>
+</div>
 
 <div id="floating-tooltip"></div>
 
@@ -2695,6 +2795,44 @@ function autoGrow(el) {
   });
 })();
 
+
+  // ── PASSWORD GATE ──
+  (function() {
+    const CORRECT = 'pkprops2026';
+    const SESSION_KEY = 'pk_catalog_auth';
+
+    const gate = document.getElementById('pw-gate');
+    const input = document.getElementById('pw-input');
+    const submit = document.getElementById('pw-submit');
+    const errorMsg = document.getElementById('pw-error');
+
+    // Already authenticated this session?
+    if (sessionStorage.getItem(SESSION_KEY) === '1') {
+      gate.classList.add('hidden');
+    } else {
+      // Focus input on load
+      setTimeout(() => input.focus(), 100);
+    }
+
+    function attempt() {
+      if (input.value === CORRECT) {
+        sessionStorage.setItem(SESSION_KEY, '1');
+        gate.classList.add('hidden');
+      } else {
+        errorMsg.textContent = 'Incorrect password';
+        input.classList.add('error');
+        input.value = '';
+        setTimeout(() => {
+          input.classList.remove('error');
+          errorMsg.textContent = '';
+          input.focus();
+        }, 800);
+      }
+    }
+
+    submit.addEventListener('click', attempt);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') attempt(); });
+  })();
 
 </script>
 </body>
